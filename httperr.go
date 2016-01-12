@@ -53,6 +53,19 @@ func Write(w http.ResponseWriter, err error) {
 	}
 }
 
+// The HandlerFunc type is an adapter to allow the use of
+// ordinary functions as HTTP handlers.  If f is a function
+// with the appropriate signature, HandlerFunc(f) is a
+// Handler object that calls f.
+type HandlerFunc func(http.ResponseWriter, *http.Request) error
+
+// ServeHTTP calls f(w, r).
+func (f HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if err := f(w, r); err != nil {
+		Write(w, err)
+	}
+}
+
 var (
 	BadRequest                   = Error{StatusCode: 400}
 	Unauthorized                 = Error{StatusCode: 401}
