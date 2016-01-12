@@ -54,22 +54,6 @@ func Write(w http.ResponseWriter, err error) {
 }
 
 var (
-	Continue                     = Error{StatusCode: 100}
-	SwitchingProtocols           = Error{StatusCode: 101}
-	OK                           = Error{StatusCode: 200}
-	Created                      = Error{StatusCode: 201}
-	Accepted                     = Error{StatusCode: 202}
-	NonAuthoritativeInfo         = Error{StatusCode: 203}
-	NoContent                    = Error{StatusCode: 204}
-	ResetContent                 = Error{StatusCode: 205}
-	PartialContent               = Error{StatusCode: 206}
-	MultipleChoices              = Error{StatusCode: 300}
-	MovedPermanently             = Error{StatusCode: 301}
-	Found                        = Error{StatusCode: 302}
-	SeeOther                     = Error{StatusCode: 303}
-	NotModified                  = Error{StatusCode: 304}
-	UseProxy                     = Error{StatusCode: 305}
-	TemporaryRedirect            = Error{StatusCode: 307}
 	BadRequest                   = Error{StatusCode: 400}
 	Unauthorized                 = Error{StatusCode: 401}
 	PaymentRequired              = Error{StatusCode: 402}
