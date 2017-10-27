@@ -2,6 +2,7 @@
 package httperr
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 )
@@ -53,6 +54,29 @@ func Write(w http.ResponseWriter, err error) {
 	}
 }
 
+// Wrap returns a copy of err with PrivateError set to privateErr.
+//
+// Example:
+//
+//  doc := Document{}
+//  if err := json.NewDecoder(r.Body).Decode(&doc); err != nil {
+//     return httperr.Wrap(httperr.BadRequest, err)
+//	}
+func Wrap(httpErr Error, privateErr error) Error {
+	httpErr.PrivateError = privateErr
+	return httpErr
+}
+
+type onErrorIndexType int
+
+const onErrorIndex onErrorIndexType = iota
+
+// OnError returns a new http.Request that holds a reference to a
+// function that will report an error when returned from a request.
+func OnError(r *http.Request, f func(err error)) *http.Request {
+	return r.WithContext(context.WithValue(r.Context(), onErrorIndex, f))
+}
+
 // The HandlerFunc type is an adapter to allow the use of
 // ordinary functions as HTTP handlers.  If f is a function
 // with the appropriate signature, HandlerFunc(f) is a
@@ -62,7 +86,30 @@ type HandlerFunc func(http.ResponseWriter, *http.Request) error
 // ServeHTTP calls f(w, r).
 func (f HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := f(w, r); err != nil {
+		if v := r.Context().Value(onErrorIndex); v != nil {
+			v.(func(error))(err)
+		}
 		Write(w, err)
+	}
+}
+
+type Public Error
+
+func (h Public) Error() string {
+	return Error(h).Error()
+}
+
+func (h Public) WriteResponse(w http.ResponseWriter) {
+	if h.PrivateError != nil {
+		w.Header().Add("X-Error-Message", h.PrivateError.Error())
+	}
+	Error(h).WriteResponse(w)
+}
+
+func FriendlyBadRequest(err error) error {
+	return Public{
+		StatusCode:   http.StatusBadRequest,
+		PrivateError: err,
 	}
 }
 
