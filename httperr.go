@@ -109,6 +109,11 @@ func (h Public) WriteResponse(w http.ResponseWriter) {
 	if h.PrivateError != nil {
 		w.Header().Add("X-Error-Message", h.PrivateError.Error())
 	}
+	for key, values := range h.Header {
+		for _, value := range values {
+			w.Header().Add(key, value)
+		}
+	}
 	Error(h).WriteResponse(w)
 }
 
