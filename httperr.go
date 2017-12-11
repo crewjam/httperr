@@ -10,9 +10,10 @@ import (
 // Error represents an error that can be modeled as an
 // http status code.
 type Error struct {
-	StatusCode   int    // the HTTP status code. If not supplied, http.StatusInternalServerError is used.
-	Status       string // the HTTP status text. If not supplied, http.StatusText(http.StatusCode) is used.
-	PrivateError error  // an additional error that is not displayed to the user, but may be logged
+	StatusCode   int         // the HTTP status code. If not supplied, http.StatusInternalServerError is used.
+	Status       string      // the HTTP status text. If not supplied, http.StatusText(http.StatusCode) is used.
+	PrivateError error       // an additional error that is not displayed to the user, but may be logged
+	Header       http.Header // extra headers to add to the response (optional)
 }
 
 func (h Error) Error() string {
@@ -32,6 +33,11 @@ func (h Error) WriteResponse(w http.ResponseWriter) {
 	}
 	if h.Status == "" {
 		h.Status = http.StatusText(h.StatusCode)
+	}
+	for key, values := range h.Header {
+		for _, value := range values {
+			w.Header().Add(key, value)
+		}
 	}
 	http.Error(w, h.Status, h.StatusCode)
 }
