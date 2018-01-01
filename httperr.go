@@ -83,6 +83,14 @@ func OnError(r *http.Request, f func(err error)) *http.Request {
 	return r.WithContext(context.WithValue(r.Context(), onErrorIndex, f))
 }
 
+// ReportError reports the error to the function given in
+// OnError.
+func ReportError(r *http.Request, err error) {
+	if v := r.Context().Value(onErrorIndex); v != nil {
+		v.(func(error))(err)
+	}
+}
+
 // The HandlerFunc type is an adapter to allow the use of
 // ordinary functions as HTTP handlers.  If f is a function
 // with the appropriate signature, HandlerFunc(f) is a
