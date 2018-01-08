@@ -35,6 +35,7 @@ func (h Error) WriteResponse(w http.ResponseWriter) {
 		h.Status = http.StatusText(h.StatusCode)
 	}
 	for key, values := range h.Header {
+		w.Header().Del(key)  // overwrite headers already in the response with the ones specified
 		for _, value := range values {
 			w.Header().Add(key, value)
 		}
