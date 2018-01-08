@@ -1,7 +1,6 @@
 package httperr
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -20,5 +19,9 @@ import (
 type Response http.Response
 
 func (re Response) Error() string {
-	return fmt.Sprintf("%d %s", re.StatusCode, re.Status)
+	msg := re.Header.Get("X-Error-Message")
+	if msg != "" {
+		msg = ": " + msg
+	}
+	return re.Status + msg
 }
