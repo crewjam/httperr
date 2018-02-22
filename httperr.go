@@ -5,6 +5,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+
+	"github.com/pkg/errors"
 )
 
 // Error represents an error that can be modeled as an
@@ -35,7 +37,7 @@ func (h Error) WriteResponse(w http.ResponseWriter) {
 		h.Status = http.StatusText(h.StatusCode)
 	}
 	for key, values := range h.Header {
-		w.Header().Del(key)  // overwrite headers already in the response with the ones specified
+		w.Header().Del(key) // overwrite headers already in the response with the ones specified
 		for _, value := range values {
 			w.Header().Add(key, value)
 		}
@@ -53,7 +55,7 @@ type ResponseWriter interface {
 // WriteResponse method is invoked to produce the response. Otherwise a
 // generic 500 Internal Server Error is written.
 func Write(w http.ResponseWriter, err error) {
-	if wr, ok := err.(ResponseWriter); ok {
+	if wr, ok := errors.Cause(err).(ResponseWriter); ok {
 		wr.WriteResponse(w)
 	} else {
 		wr := Error{PrivateError: err}
