@@ -55,12 +55,18 @@ type ResponseWriter interface {
 // WriteResponse method is invoked to produce the response. Otherwise a
 // generic 500 Internal Server Error is written.
 func Write(w http.ResponseWriter, err error) {
+	err = TranslateError(err)
+
 	if wr, ok := errors.Cause(err).(ResponseWriter); ok {
 		wr.WriteResponse(w)
-	} else {
-		wr := Error{PrivateError: err}
-		wr.WriteResponse(w)
+		return
 	}
+
+	wr := Error{
+		PrivateError: err,
+		StatusCode:   http.StatusInternalServerError,
+	}
+	wr.WriteResponse(w)
 }
 
 // Wrap returns a copy of err with PrivateError set to privateErr.
