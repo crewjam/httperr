@@ -19,13 +19,37 @@ type Error struct {
 }
 
 func (h Error) Error() string {
+	statusCode, statusText := h.StatusCodeAndText()
+	return fmt.Sprintf("%d %s", statusCode, statusText)
+}
+
+// StatusCodeAndText returns the status code and text of the error
+func (h Error) StatusCodeAndText() (int, string) {
 	if h.StatusCode == 0 {
 		h.StatusCode = http.StatusInternalServerError
 	}
 	if h.Status == "" {
 		h.Status = http.StatusText(h.StatusCode)
 	}
-	return fmt.Sprintf("%d %s", h.StatusCode, h.Status)
+	return h.StatusCode, h.Status
+}
+
+type statusCodeAndTexter interface {
+	StatusCodeAndText() (int, string)
+}
+
+// StatusCodeAndText returns the status code and text of the error
+func StatusCodeAndText(err error) (int, string) {
+	if err == nil {
+		return 200, http.StatusText(200)
+	}
+	err = TranslateError(err)
+
+	if scater, ok := errors.Cause(err).(statusCodeAndTexter); ok {
+		return scater.StatusCodeAndText()
+	}
+
+	return http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError)
 }
 
 // WriteResponse writes an error response to w using the specified status code.
