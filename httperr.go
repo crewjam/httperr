@@ -185,6 +185,7 @@ var (
 	RequestedRangeNotSatisfiable = Error{StatusCode: 416}
 	ExpectationFailed            = Error{StatusCode: 417}
 	Teapot                       = Error{StatusCode: 418}
+	TooManyRequests              = Error{StatusCode: 429}
 	InternalServerError          = Error{StatusCode: 500}
 	NotImplemented               = Error{StatusCode: 501}
 	BadGateway                   = Error{StatusCode: 502}
