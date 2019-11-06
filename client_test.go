@@ -50,15 +50,15 @@ func TestClient(t *testing.T) {
 	})
 
 	t.Run("unmarshal", func(t *testing.T) {
-		arg := JSON(func() error { return &testError{} })
+		arg := JSON(testError{})
 		arg(&transport)
 
 		client := http.Client{Transport: transport}
 		resp, err := client.Get("/foo")
 		assert.Nil(t, resp)
-		httpErr := err.(*url.Error).Unwrap().(*testError)
+		httpErr := err.(*url.Error).Unwrap().(testError)
 		assert.Equal(t, "cannot frob the grob (1)", httpErr.Error())
-		assert.Equal(t, testError{Message: "cannot frob the grob", Code: 1}, *httpErr)
+		assert.Equal(t, testError{Message: "cannot frob the grob", Code: 1}, httpErr)
 	})
 
 	t.Run("unmarshal bad", func(t *testing.T) {
@@ -71,7 +71,7 @@ func TestClient(t *testing.T) {
 			}),
 		}
 
-		arg := JSON(func() error { return &testError{} })
+		arg := JSON(testError{})
 		arg(&transport)
 
 		client := http.Client{Transport: transport}

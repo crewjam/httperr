@@ -56,9 +56,7 @@ func (a APIError) Error() string {
 }
 
 func GetFoo() {
-    client := httperr.Client(http.DefaultClient,
-        httperr.JSON(func() error { return &APIError{} }),
-    )
+    client := httperr.Client(http.DefaultClient, httperr.JSON(APIError{}))
 
     req, _ := http.NewRequest("GET", "https://api.example.com/foo", nil)
     resp, err := client.Do(req)

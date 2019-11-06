@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 )
 
 // ClientArg is an argument to Client
@@ -85,7 +86,15 @@ func (t Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 // JSON returns a ClientArg that specifies a function that
 // handles errors structured as a JSON object.
-func JSON(jsonMakeError func() error) ClientArg {
+func JSON(errStruct error) ClientArg {
+	typ := reflect.TypeOf(errStruct)
+	if typ.Kind() != reflect.Struct {
+		panic("JSON() argument must be a structure")
+	}
+
+	e := reflect.New(typ).Interface()
+	_ = e.(error) // panic if errStruct
+
 	return func(xport *Transport) {
 		xport.OnError = func(req *http.Request, resp *http.Response) error {
 			defer resp.Body.Close()
@@ -95,11 +104,12 @@ func JSON(jsonMakeError func() error) ClientArg {
 			}
 			resp.Body = ioutil.NopCloser(bytes.NewReader(body))
 
-			jsonErr := jsonMakeError()
+			jsonErrValue := reflect.New(typ)
 
-			unmarshalErr := json.Unmarshal(body, jsonErr)
+			unmarshalErr := json.Unmarshal(body, jsonErrValue.Interface())
 			if unmarshalErr == nil {
-				return jsonErr
+				// jsonErrValue is a *Foo if errStruct == Foo{}
+				return jsonErrValue.Elem().Interface().(error)
 			}
 
 			// we failed to unmarshal the response body, so ignore the
